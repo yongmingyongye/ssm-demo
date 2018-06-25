@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"   
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop 
+       http://www.springframework.org/schema/aop/spring-aop.xsd 
+       http://www.springframework.org/schema/tx 
+       http://www.springframework.org/schema/tx/spring-tx.xsd 
+       ">
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    	<property name="locations">
+    		<list>
+    			<!-- 支持classpath和file寻址方式： -->
+    			<value>classpath:config/properties/jdbc.properties</value>
+    		</list>
+    	</property>
+    </bean>
+
+	<!-- 配置数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+    	<property name="driverClass" value="com.mysql.jdbc.Driver"/>
+    	<property name="jdbcUrl" value="jdbc:mysql://${jdbc.host}:${jdbc.port}/${jdbc.database}?useSSL=false&amp;useUnicode=true&amp;characterEncoding=utf8" />  
+        <property name="user" value="${jdbc.username}" />  
+        <property name="password" value="${jdbc.password}" />  
+        <!-- 当连接池中的连接耗尽的时候c3p0一次同时获取的连接数 -->
+        <property name="acquireIncrement" value="${acquireIncrement}" />  
+        <!-- 初始化连接数-->
+        <property name="initialPoolSize" value="${initialPoolSize}" />  
+        <!-- 连接池保留的最大连接数 -->
+        <property name="maxPoolSize" value="${maxPoolSize}" />  
+        <!-- 连接池保留的最小连接数 -->
+        <property name="minPoolSize" value="${minPoolSize}" />  
+        <!-- PreparedStatements缓存的大小 -->
+        <property name="maxStatements" value="${maxStatements}" />  
+        <!-- 为true，每次从连接池中获取一个连接时就进行测试，如果测试连接有问题就关闭重新获取 -->
+        <property name="testConnectionOnCheckout" value="true" />
+    </bean>
+    
+    <!-- 配置sqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    	<property name="dataSource" ref="dataSource"/><!-- 实例化sqlSessionFactory时需要使用上述配置好的数据源以及SQL映射文件 -->
+    	<property name="configLocation" value="classpath:config/xml/mybatis-config.xml"/>
+    </bean>
+    
+    <!-- Mapper动态代理开发   扫描 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 基本包 -->
+        <property name="basePackage" value="com.f.ssm.mapper"/>
+    </bean>
+    
+    <!-- 定义SqlSessionTemplate -->
+    <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+    	<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
+    </bean>
+    
+    <!-- 事务管理 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    	<property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+</beans>

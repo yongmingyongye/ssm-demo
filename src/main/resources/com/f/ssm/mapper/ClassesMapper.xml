@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.f.ssm.mapper.ClassesMapper">
+	<!-- 设置结果集，映射班级信息与学生对应信息 -->
+	<resultMap type="Classes" id="ClassesMap">
+		<!-- 班级自身属性与数据库字段的映射 -->
+		<id column="id"  property="id" />
+		<result column="class_name" jdbcType="VARCHAR" property="className"/>
+		<!-- collection处理一对多关系 -->
+		<collection property="studentList" ofType="Student">
+			<id column="student_id" property="id"/>
+			<result column="name"  property="name"/>
+			<result column="sex"  property="sex"/>
+			<result column="age"  property="age"/>
+			<result column="address"  property="address"/>
+		</collection>
+	</resultMap>
+	
+	<sql id="Column_List">
+		c.*,s.id as student_id,s.name,s.sex,s.age,s.address
+	</sql>
+	
+	<sql id="Table_List">
+		classes c left join student s on c.id = s.class_id
+	</sql>
+	
+	<sql id="Where_Clause">
+		where 1=1
+		<if test="id!=null and id!=''">and c.id = #{id}</if>
+		<if test="className!=null and className!=''">and c.class_name = #{className}</if>
+	</sql>
+	
+	<!-- 通过id查找班级信息 -->
+	<select id="getClassesById" resultMap="ClassesMap" parameterType="Integer">
+		select <include refid="Column_List"/>
+			from <include refid="Table_List"/>
+			where c.id = #{id}
+	</select>
+	
+	<!-- 条件查询班级信息 -->
+	<select id="getAllClasses" resultMap="ClassesMap" parameterType="Classes">
+		select <include refid="Column_List"/>
+			from <include refid="Table_List"/>
+			<include refid="Where_Clause"/>
+	</select>
+	
+	<insert id="saveClasses">
+		insert into classes (class_name) value(#{className})
+	</insert>
+	
+	
+	<update id="updateClasses">
+		update classes set class_name = #{className} where id = #{id}
+	</update>
+	
+	<delete id="deleteClasses">
+		delete from classes where id = #{id}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.f.ssm.mapper.StudentMapper">
+	<!-- 设置结果集，映射学生的基本信息和对应的班级信息 -->
+	<resultMap type="Student" id="StudentMap">
+		<!-- 学生自身属性与数据库字段的映射 -->
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="name"  property="name"/>
+		<result column="sex"  property="sex"/>
+		<result column="age"  property="age"/>
+		<result column="address"  property="address"/>
+		<!-- association处理多对一或一对一关系 -->
+		<!-- 注：javaType必须指定，表示classes的类型是Classes -->
+		<association property="classes" javaType="Classes" >
+			<!-- 班级自身属性与数据库字段的映射 -->
+			<id column="class_id" property="id"/>
+			<result column="class_name" property="className"/>
+		</association>
+	</resultMap>
+	<!-- 保存学生信息 -->
+	<insert id="saveStudent">
+		insert into student (name,sex,age,address,class_id)
+		value (#{name},#{sex},#{age},#{address},#{classes.id})
+	</insert>
+	<!-- 更新学生信息 -->
+	<update id="updateStudent">
+		update student set
+			name = #{name},
+			sex = #{sex},
+			age = #{age},
+			address = #{address},
+			class_id = #{classes.id}
+		where id = #{id}
+	</update>
+	<!-- 通过id查找学生信息 -->
+	<select id="getStudentById" resultMap="StudentMap" parameterType="Integer">
+		select s.id,s.name,s.sex,s.age,s.address,c.id as class_id,c.class_name
+			from student s,classes c where s.id = #{id} and c.id = s.class_id
+	</select>
+	<!-- 获取所有学生信息 -->
+	<select id="getAllStudent" resultMap="StudentMap">
+		select s.*,c.id as class_id,c.class_name from student s,classes c
+	</select>
+	
+	<delete id="deleteStudent" parameterType="Integer">
+		delete from student where id = #{id}
+	</delete>
+</mapper>
